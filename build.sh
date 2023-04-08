@@ -14,8 +14,6 @@ TARGET_ALIAS="x86_64-pc-linux-gnu"
 TARG_XTRA_OPTS=""
 TARGET_PREFIX="/usr/local/cross-tools"
 
-export PATH=PATH:"$TARGET_PREFIX"/bin:"$TARGET_PREFIX"/"$TARGET_ALIAS"/bin
-
 ## Download texinfo source code
 #REPO_URL="https://github.com/debian-tex/texinfo"
 #REPO_FOLDER="texinfo"

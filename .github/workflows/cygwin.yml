@@ -74,7 +74,7 @@ jobs:
       shell: cmd
       
     - name: Set PATH
-      run: echo "PATH=C:\cygwin64\bin;C:\cygwin64\lib\lapack;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      run: echo "PATH=C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
     - name: Fixup Cygwin installation
       run: |
