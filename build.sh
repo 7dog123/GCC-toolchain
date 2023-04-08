@@ -75,8 +75,8 @@ else
 fi
 cd "$REPO_FOLDER"
 
-patch -Np1 -i.bak ../patches/preserve-timestamps.patch
-patch -Np1 -i.bak ../patches/makeinfo.patch
+patch -Np1 -i ../patches/preserve-timestamps.patch
+patch -Np1 -i ../patches/makeinfo.patch
 
 rm -rf gas/doc/.dirstamp
 
