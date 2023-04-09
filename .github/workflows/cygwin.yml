@@ -17,9 +17,9 @@ jobs:
     
     - uses: actions/cache@v3
       with:
-        path: C:\cygwin-packages
-        key: cygwin-packages-${{ hashFiles('C:\cygwin-packages\**') }}
-        restore-keys: cygwin-packages-
+        path: C:\cygwin64
+        key: cygwin
+        restore-keys: cygwin-
         
     - name: Fetch Cygwin installer
       if:   ${{ steps._cache.outputs.cache-hit != 'true' }}}
@@ -30,7 +30,7 @@ jobs:
     - name: Install Cygwin
       if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run:  |
-        c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin-packages\ -P ^
+        c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin64\cygwin-packages\ -P ^
         autoconf,^
         autogen,^
         automake,^
@@ -98,9 +98,9 @@ jobs:
     steps:
     - uses: actions/cache@v3
       with:
-        path: C:\cygwin-packages
-        key: cygwin-packages-${{ hashFiles('C:\cygwin-packages\**') }}
-        restore-keys: cygwin-packages-
+        path: C:\cygwin64
+        key: cygwin
+        restore-keys: cygwin-
         
     - uses: actions/checkout@v1
     
