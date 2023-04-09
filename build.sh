@@ -206,18 +206,14 @@ PROC_NR=$(getconf _NPROCESSORS_ONLN)
 
 ## For each target
 for TARGET in "$TARGET_ALIAS"; do
-	## Create and ente the toolchain/build directory
-	rm -rf "build-$TARGET"
-    mkdir "build-$TARGET"
-    cd "build-$TARGET"
 	
 	# compile and install Linux API Headers
-	make -j "$PROC_NR" -f "../Makefile" mrproper
-	make -j "$PROC_NR" -f "../Makefile" headers
+	make -j "$PROC_NR" mrproper
+	make -j "$PROC_NR" headers
 	find usr/include -type f ! -name '*.h' -delete
 	cp -rv usr/include "$TARGET_PREFIX"
 	
-	cd ../..
+	cd ../
 done
 
 ## Download glibc source code
