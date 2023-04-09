@@ -6,7 +6,7 @@ env:
   CASE_INSENSITIVE: 1
   
 jobs:
-  toolchain:
+  cygwin:
     runs-on: windows-latest
     
     steps:
@@ -14,8 +14,6 @@ jobs:
       run: |
         git config --global core.autocrltf false
         git config --global core.eol lf
-        
-    - uses: actions/checkout@v1
     
     - uses: actions/cache@v3
       with:
@@ -24,11 +22,13 @@ jobs:
         restore-keys: cygwin-packages-
         
     - name: Fetch Cygwin installer
+      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}}
       run: Invoke-WebRequest https://cygwin.com/setup-x86_64.exe -OutFile C:\setup.exe
       shell: powershell
       
     # installer should be cacheable
     - name: Install Cygwin
+      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run:  |
         c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin-packages\ -P ^
         autoconf,^
@@ -74,9 +74,11 @@ jobs:
       shell: cmd
       
     - name: Set PATH
+      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run: echo "PATH=C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
     - name: Fixup Cygwin installation
+      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run: |
         bash --login
         bash -c '/usr/sbin/alternatives --set python /usr/bin/python3.8'
@@ -87,7 +89,21 @@ jobs:
         bash -c 'git config --system --add safe.directory /cygdrive/d/a/cygport/cygport'
         bash -c 'git config --system --add safe.directory /cygdrive/d/a/cygport/cygport/data/gnuconfig'
       continue-on-error: true
-      
+
+  build-gcc-toolchain:
+    name: Build GCC toolchain
+    runs-on: windows-latest
+    needs: cygwin
+    
+    steps:
+    - uses: actions/cache@v3
+      with:
+        path: C:\cygwin-packages
+        key: cygwin-packages-${{ hashFiles('C:\cygwin-packages\**') }}
+        restore-keys: cygwin-packages-
+        
+    - uses: actions/checkout@v1
+    
     - name: Build
       run: |
         bash -c 'dos2unix build.sh'
