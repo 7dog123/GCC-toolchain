@@ -52,6 +52,7 @@ jobs:
         libmpfr-devel,^
         libncurses-devel,^
         make,^
+        mercurial,^
         patch,^
         perl-File-ShareDir,^
         perl-Unicode-Normalize,^
