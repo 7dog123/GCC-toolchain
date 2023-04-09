@@ -83,7 +83,7 @@ rm -rf gas/doc/.dirstamp
 hg clone https://gmplib.org/repo/gmp-6.2 gmp
 git clone https://gitlab.inria.fr/mpfr/mpfr.git mpfr
 git clone https://github.com/BrianGladman/mpc mpc
-git clone 	https://repo.or.cz/isl.git isl
+git clone https://repo.or.cz/isl.git isl
 
 ## For each target
 for TARGET in "$TARGET_ALIAS"; do

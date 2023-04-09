@@ -76,7 +76,7 @@ jobs:
       
     - name: Set PATH
       if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
-      run: echo "PATH=C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      run: echo "PATH=PATH;C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
     - name: Fixup Cygwin installation
       if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
@@ -104,6 +104,10 @@ jobs:
         restore-keys: cygwin-
         
     - uses: actions/checkout@v1
+    
+    - name: Set PATH
+      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
+      run: echo "PATH=PATH;C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     
     - name: Build
       run: |
