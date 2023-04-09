@@ -96,6 +96,8 @@ for TARGET in "$TARGET_ALIAS"; do
 	--disable-nls \
 	--enable-gprofng=no \
 	--disable-werror \
+	--with-gmp="C:\cygwin64\usr\include" \
+	--with-mpfr="C:\cygwin64\usr\include" \
 	$TARG_XTRA_OPTS
 	
 	# Compile and install
