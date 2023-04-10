@@ -10,6 +10,8 @@ jobs:
     runs-on: windows-latest
     
     steps:
+    - uses: actions/checkout@v1
+    
     - name: Turn off line ending conversion in git
       run: |
         git config --global core.autocrltf false
@@ -91,24 +93,6 @@ jobs:
         bash -c 'git config --system --add safe.directory /cygdrive/d/a/cygport/cygport/data/gnuconfig'
       continue-on-error: true
 
-  build-gcc-toolchain:
-    name: Build GCC toolchain
-    runs-on: windows-latest
-    needs: cygwin
-    
-    steps:
-    - uses: actions/cache@v3
-      with:
-        path: C:\cygwin64
-        key: cygwin
-        restore-keys: cygwin-
-        
-    - uses: actions/checkout@v1
-    
-    - name: Set PATH
-      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
-      run: echo "PATH=C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-    
     - name: Build
       run: |
         bash -c 'dos2unix build.sh'
