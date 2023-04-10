@@ -12,6 +12,11 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     
+    - name: turn off case sensitivity 
+      run: |
+       reg ADD "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Kernel" /v obcaseinsensitive /t REG_DWORD /d 0 /f
+       shutdown -r
+       
     - name: Turn off line ending conversion in git
       run: |
         git config --global core.autocrltf false
