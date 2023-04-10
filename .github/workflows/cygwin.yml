@@ -4,13 +4,15 @@ on: [ push, pull_request ]
 
 env:
   CASE_INSENSITIVE: 1
+  TARGET_ALIAS: x86_64-pc-linux-gnu
+  TARGET_PREFIX: /usr/local/cross-tools
+  PROC_NR: 3
   
 jobs:
   cygwin:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v1
     
     - name: Turn off line ending conversion in git
       run: |
@@ -33,47 +35,12 @@ jobs:
       if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run:  |
         c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin64\cygwin-packages\ -P ^
-        autoconf,^
-        autogen,^
-        automake,^
-        binutils,^
-        bison,^
-        dos2unix,^
-        flex,^
-        gawk,^
-        gcc-g++,^
-        gettext,^
-        gettext-devel,^
-        git,^
-        git-archive-all,^
-        help2man,^
-        libcrypt-devel,^
-        libiconv-devel,^
-        libgmp-devel,^
-        libmpc-devel,^
-        libmpfr-devel,^
-        libncurses-devel,^
-        make,^
-        mercurial,^
-        patch,^
-        perl-File-ShareDir,^
-        perl-Unicode-Normalize,^
-        python38-devel,^
-        python27-wheel,^
-        python37-pip,^
-        python37-setuptools,^
-        python37-wheel,^
-        python38-pip,^
-        python38-setuptools,^
-        python38-wheel,^
-        python38-pygments,^
-        python39-pip,^
-        python39-setuptools,^
-        python39-wheel,^
-        terminfo,^
-        texlive-collection-latex,^
-        texinfo,^
-        texinfo-tex
+        autoconf,autogen,automake,binutilsbison,dos2unix,flex,gawk,gcc-g++,gettext,gettext-devel,^
+        git, git-archive-all,help2man,libcrypt-devel,libiconv-devel,libgmp-devel,libmpc-devel,^
+        libmpfr-devel,libncurses-devel,make,mercurial,patch,perl-File-ShareDir,perl-Unicode-Normalize,^
+        python38-devel,python27-wheel,python37-pip,python37-setuptoolspython37-wheel,python38-pip,^
+        python38-setuptools,python38-wheel,python38-pygments,python39-pippython39-setuptools,^
+        python39-wheel,terminfo,texlive-collection-latex,texinfo,texinfo-tex
       shell: cmd
       
     - name: Set PATH
@@ -93,8 +60,150 @@ jobs:
         bash -c 'git config --system --add safe.directory /cygdrive/d/a/cygport/cygport/data/gnuconfig'
       continue-on-error: true
 
-    - name: Build
+    - name: Get binutils source
+      uses: actions/checkout@v3
+      with:
+        repository: bminor/binutils-gdb
+        ref: binutils-2_40
+        path: binutils-gdb
+      
+    - name: patch Binutils
       run: |
-        bash -c 'dos2unix build.sh'
-        bash build.sh
+       cd binutils-gdb
+       patch -Np1 -i ../patches/preserve-timestamps.patch
+       patch -Np1 -i ../patches/makeinfo.patch
+       rm -rf gas/doc/.dirstamp
+       
+    - name: Configure Binutils
+      run: |
+       cd binutils-gdb
+       mkdir binutils-${{ env.TARGET_ALIAS }}
+       cd binutils-${{ env.TARGET_ALIAS }}
+       ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror
+       
+    - name: Build and install Binutils
+      run: |
+       cd binutils-gdb/binutils-${{ env.TARGET_ALIAS }}
+       make --quiet -j ${{ env.PROC_NR }}
+       make --quiet -j ${{ env.PROC_NR }} install
+       make --quiet -j ${{ env.PROC_NR }} clean
+      
+    - name: Get GCC source
+      uses: actions/checkout@v3
+      with:
+        repository: gcc-mirror/gcc
+        ref: releases/gcc-12.2.0
+        path: gcc
+        
+    - name: download GCC prerequisites
+      run: |
+       cd gcc
+       ./contrib/download_prerequisites
+       
+    - name: configure GCC
+      run: |
+       cd gcc
+       mkdir gcc-${{ env.TARGET_ALIAS }}
+      ## On x86_64 hosts, set the default directory name for 64-bit libraries to “lib”
+       case $(uname -m) in
+         x86_64)
+           sed -e '/m64=/s/lib64/lib/' \
+               -i.orig gcc/config/i386/t-linux64
+       ;;
+       esac
+       cd gcc-${{ env.TARGET_ALIAS }}
+       ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --with-glibc-version=2.37 --with-newlib --without-headers \
+       --enable-default=pie --enable-default-ssp --disable-nls --disable-shared --disable-multilib --disabable-threads --disable-libatomic --disable-libgomp --disable-libquadmath --disable-libssp --disable-libvtv \
+       --disable-libstdcxx --enable-languages=c,c++
+    
+    - name: build and install GCC
+      run: |
+       cd gcc/gcc-${{ env.TARGET_ALIAS }}
+       make --quiet -j ${{ env.PROC_NR }}
+       make --quiet -j ${{ env.PROC_NR }} install
+      ## This build of GCC has installed a couple of internal system headers. Normally one of them, limits.h, would in turn include the corresponding system limits.h 
+      ## header, in this case, "$TARGET_PREFIX"/include/limits.h. However, at the time of this build of GCC "$TARGET_PREFIX"/include/limits.h does not exist, so the internal header that has 
+      ## just been installed is a partial, self-contained file and does not include the extended features of the system header. This is adequate for building Glibc, but the 
+      ## full internal header will be needed later. Create a full version of the internal header using a command that is identical to what the GCC build system does in
+      ## normal circumstances
+       cd .. 
+       cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
+       `dirname $(${{ env.TARGET_ALIAS }}-gcc -print-libgcc-file-name)`/install-tools/include/limits.h
+       pushd build-${{ env.TARGET_ALIAS }}
+       make --quiet -j ${{ env.PROC_NR }} clean
+       popd
+       
+    - name: Get linux kernel source
+      uses: actions/checkout@v3
+      with:
+        repository: torvalds/linux
+        ref: v6.2
+        path: linux
+        
+    - name: build and install linux kernel
+      run: |
+       cd linux
+       make --quiet -j ${{ env.PROC_NR }} mrproper
+       make --quiet -j ${{ env.PROC_NR }} mrproper headers
+       find usr/include -type f ! -name '*.h' -delete
+       cp -rv usr/include ${{ env.TARGET_PREFIX }}
+       
+    - name: Get linux kernel source
+      uses: actions/checkout@v3
+      with:
+        repository: bminor/glibc
+        ref: glibc-2.37
+        path: glibc
+        
+    ## Some of the Glibc programs use the non-FHS-compliant /var/db directory to store their runtime data. Apply the following patch to make such programs store
+    ## their runtime data in the FHS-compliant locations
+    - name: patch glibc
+      run: |
+       cd glibc
+       patch -Np1 -i ../patches/glibc-2.37-fhs-1.patch
+       
+    - name: configure glibc
+      run: |
+       cd glibc
+       mkdir glibc-${{ env.TARGET_ALIAS }}
+      ## First, create a symbolic link for LSB compliance. Additionally, for x86_64, create a compatibility symbolic link required for proper operation of the dynamic
+      ## library loader 
+       case $(uname -m) in
+         i?86)   ln -sfv ld-linux.so.2 "$TARGET_PREFIX"/lib/ld-lsb.so.3
+         ;;
+         x86_64) ln -sfv ../lib/ld-linux-x86-64.so.2 "$TARGET_PREFIX"/lib64
+                 ln -sfv ../lib/ld-linux-x86-64.so.2 "$TARGET_PREFIX"/lib64/ld-lsb-x86-64.so.3
+         ;;
+         esac
+        ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --enable-kernel=3.2 --with-headers=${{ env.TARGET_PREFIX }}-include libc_cv_slibdir=${{ env.TARGET_PREFIX }}/lib
+        
+    - name: build and install glibc
+      run: |
+       cd glibc/glibc-${{ env.TARGET_ALIAS }}
+       make --quiet -j ${{ env.PROC_NR }}
+       make --quiet -j ${{ env.PROC_NR }} DESTDIR=${{ env.TARGET_PREFIX }} install
+       make --quiet -j ${{ env.PROC_NR }} clean
+      ## Fix a hard coded path to the executable loader in the ldd script
+       sed '/RTLDLIST=/s@/usr@@g' -i ${{ env.TARGET_PREFIX }}/bin/ldd
+      ## Now that our cross-toolchain is complete, finalize the installation of the limits.h header. To do this, run a utility provided by the GCC developers
+       ${{ env.TARGET_PREFIX }}/libexec/gcc/#{{ env.TARGET_ALIAS }}/12.2.0/install-tools/mkheaders
+       
+    - name: build and install libstdc
+      run: |
+       cd gcc
+       mkdir build-libstdc++-$ {{ env.TARGET }}
+       ../libstdc++-v3/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0
+       
+    - name: build and install libstdc++
+      run: |
+       cd  gcc/build-libstdc++-$ {{ env.TARGET }}
+       make --quiet -j "$PROC_NR"
+       make --quiet -j "$PROC_NR" DESTDIR=${{ env.TARGET_PREFIX }} install
+       make --quiet -j "$PROC_NR" clean
+       rm -v ${{ env.TARGET_PREFIX }}/lib/lib{stdc++,stdc++fs,supc++}.la
+       
+    #- name: Build
+      #run: |
+        #bash -c 'dos2unix build.sh'
+        #bash build.sh
         
