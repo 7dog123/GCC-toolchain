@@ -190,7 +190,7 @@ for TARGET in "$TARGET_ALIAS"; do
 	popd
 	
 	## End target.
-	cd ..
+	cd ../..
 done
 
 ## Download linux api source code
@@ -213,11 +213,10 @@ PROC_NR=$(getconf _NPROCESSORS_ONLN)
 for TARGET in "$TARGET_ALIAS"; do
 	
 	# compile and install Linux API Headers
-	make -j "$PROC_NR" mrproper
-	make -j "$PROC_NR" headers
+	make mrproper
+	make headers
 	find usr/include -type f ! -name '*.h' -delete
 	cp -rv usr/include "$TARGET_PREFIX"
-	
 	cd ../
 done
 
