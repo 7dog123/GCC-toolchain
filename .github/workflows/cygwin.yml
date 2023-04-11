@@ -57,7 +57,7 @@ jobs:
       continue-on-error: true
 
     - name: accept dubious ownership
-      run|
+      run: |
        git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/binutils-gdb
        git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/gcc
        git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/linux
