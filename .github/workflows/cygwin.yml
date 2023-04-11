@@ -57,11 +57,7 @@ jobs:
       continue-on-error: true
 
     - name: accept dubious ownership
-      run: |
-       git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/binutils-gdb
-       git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/gcc
-       git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/linux
-       git config --global --add safe.directory /cygdrive/d/a/GCC-toolchain/GCC-toolchain/glibc
+      run:  git config --global --add safe.directory '*'
 
     - name: Get binutils source
       uses: actions/checkout@v3
