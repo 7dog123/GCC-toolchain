@@ -13,6 +13,7 @@ jobs:
     runs-on: windows-latest
     
     steps:
+    - uses: actions/checkout@v3
     
     - name: Turn off line ending conversion in git
       run: |
