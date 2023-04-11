@@ -60,11 +60,7 @@ jobs:
       run:  git config --global --add safe.directory '*'
 
     - name: Get binutils source
-      uses: actions/checkout@v3
-      with:
-        repository: bminor/binutils-gdb
-        ref: binutils-2_40
-        path: binutils-gdb
+      run: git clone https://github.com/bminor/binutils-gdb -b binutils-2_40
       
     - name: patch Binutils
       run: |
@@ -88,11 +84,7 @@ jobs:
        make --quiet -j ${{ env.PROC_NR }} clean
       
     - name: Get GCC source
-      uses: actions/checkout@v3
-      with:
-        repository: gcc-mirror/gcc
-        ref: releases/gcc-12.2.0
-        path: gcc
+      run: git clone https://github.com/gcc-mirror/gcc -b releases/gcc-12.2.0
         
     - name: download GCC prerequisites
       run: |
@@ -133,11 +125,7 @@ jobs:
        popd
        
     - name: Get linux kernel source
-      uses: actions/checkout@v3
-      with:
-        repository: torvalds/linux
-        ref: v6.2
-        path: linux
+      run: git clone https://github.com/torvalds/linux -b v6.2
         
     - name: build and install linux kernel
       run: |
@@ -148,11 +136,7 @@ jobs:
        cp -rv usr/include ${{ env.TARGET_PREFIX }}
        
     - name: Get linux kernel source
-      uses: actions/checkout@v3
-      with:
-        repository: bminor/glibc
-        ref: glibc-2.37
-        path: glibc
+      run: git clone https://github.com/bminor/glibc -b glibc-2.37
         
     ## Some of the Glibc programs use the non-FHS-compliant /var/db directory to store their runtime data. Apply the following patch to make such programs store
     ## their runtime data in the FHS-compliant locations
