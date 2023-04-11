@@ -115,7 +115,7 @@ jobs:
        ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --with-glibc-version=2.37 --with-newlib --without-headers \
        --enable-default=pie --enable-default-ssp --disable-nls --disable-shared --disable-multilib --disabable-threads --disable-libatomic --disable-libgomp --disable-libquadmath --disable-libssp --disable-libvtv \
        --disable-libstdcxx --enable-languages=c,c++
-    
+      
     - name: build and install GCC
       run: |
        cd gcc/gcc-${{ env.TARGET_ALIAS }}
