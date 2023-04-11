@@ -6,7 +6,7 @@ env:
   CASE_INSENSITIVE: 1
   TARGET_ALIAS: x86_64-pc-linux-gnu
   TARGET_PREFIX: /usr/local/cross-tools
-  PROC_NR: 3
+  PROC_NR: $(getconf _NPROCESSORS_ONLN)
   
 jobs:
   cygwin:
@@ -26,13 +26,11 @@ jobs:
         restore-keys: cygwin-
         
     - name: Fetch Cygwin installer
-      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}}
       run: Invoke-WebRequest https://cygwin.com/setup-x86_64.exe -OutFile C:\setup.exe
       shell: powershell
       
     # installer should be cacheable
     - name: Install Cygwin
-      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run:  |
         c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin64\cygwin-packages\ -P ^
         autoconf,autogen,automake,binutilsbison,dos2unix,flex,gawk,gcc-g++,gettext,gettext-devel,^
@@ -44,11 +42,9 @@ jobs:
       shell: cmd
       
     - name: Set PATH
-      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run: echo "PATH=C:\cygwin64\bin;C:\cygwin64\lib\lapack;C:\cygwin64\usr\local\cross-tools\bin;C:\cygwin64\usr\local\cross-tools\x86_64-pc-linux-gnu\bin;%SYSTEMROOT%\system32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
     - name: Fixup Cygwin installation
-      if:   ${{ steps._cache.outputs.cache-hit != 'true' }}
       run: |
         bash --login
         bash -c '/usr/sbin/alternatives --set python /usr/bin/python3.8'
@@ -104,7 +100,7 @@ jobs:
       run: |
        cd gcc
        mkdir gcc-${{ env.TARGET_ALIAS }}
-      ## On x86_64 hosts, set the default directory name for 64-bit libraries to “lib”
+       ## On x86_64 hosts, set the default directory name for 64-bit libraries to “lib”
        case $(uname -m) in
          x86_64)
            sed -e '/m64=/s/lib64/lib/' \
@@ -121,11 +117,11 @@ jobs:
        cd gcc/gcc-${{ env.TARGET_ALIAS }}
        make --quiet -j ${{ env.PROC_NR }}
        make --quiet -j ${{ env.PROC_NR }} install
-      ## This build of GCC has installed a couple of internal system headers. Normally one of them, limits.h, would in turn include the corresponding system limits.h 
-      ## header, in this case, "$TARGET_PREFIX"/include/limits.h. However, at the time of this build of GCC "$TARGET_PREFIX"/include/limits.h does not exist, so the internal header that has 
-      ## just been installed is a partial, self-contained file and does not include the extended features of the system header. This is adequate for building Glibc, but the 
-      ## full internal header will be needed later. Create a full version of the internal header using a command that is identical to what the GCC build system does in
-      ## normal circumstances
+       ## This build of GCC has installed a couple of internal system headers. Normally one of them, limits.h, would in turn include the corresponding system limits.h 
+       ## header, in this case, "$TARGET_PREFIX"/include/limits.h. However, at the time of this build of GCC "$TARGET_PREFIX"/include/limits.h does not exist, so the internal header that has 
+       ## just been installed is a partial, self-contained file and does not include the extended features of the system header. This is adequate for building Glibc, but the 
+       ## full internal header will be needed later. Create a full version of the internal header using a command that is identical to what the GCC build system does in
+       ## normal circumstances
        cd .. 
        cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
        `dirname $(${{ env.TARGET_ALIAS }}-gcc -print-libgcc-file-name)`/install-tools/include/limits.h
@@ -166,8 +162,8 @@ jobs:
       run: |
        cd glibc
        mkdir glibc-${{ env.TARGET_ALIAS }}
-      ## First, create a symbolic link for LSB compliance. Additionally, for x86_64, create a compatibility symbolic link required for proper operation of the dynamic
-      ## library loader 
+       ## First, create a symbolic link for LSB compliance. Additionally, for x86_64, create a compatibility symbolic link required for proper operation of the dynamic
+       ## library loader 
        case $(uname -m) in
          i?86)   ln -sfv ld-linux.so.2 "$TARGET_PREFIX"/lib/ld-lsb.so.3
          ;;
@@ -183,9 +179,9 @@ jobs:
        make --quiet -j ${{ env.PROC_NR }}
        make --quiet -j ${{ env.PROC_NR }} DESTDIR=${{ env.TARGET_PREFIX }} install
        make --quiet -j ${{ env.PROC_NR }} clean
-      ## Fix a hard coded path to the executable loader in the ldd script
+       ## Fix a hard coded path to the executable loader in the ldd script
        sed '/RTLDLIST=/s@/usr@@g' -i ${{ env.TARGET_PREFIX }}/bin/ldd
-      ## Now that our cross-toolchain is complete, finalize the installation of the limits.h header. To do this, run a utility provided by the GCC developers
+       ## Now that our cross-toolchain is complete, finalize the installation of the limits.h header. To do this, run a utility provided by the GCC developers
        ${{ env.TARGET_PREFIX }}/libexec/gcc/#{{ env.TARGET_ALIAS }}/12.2.0/install-tools/mkheaders
        
     - name: build and install libstdc
