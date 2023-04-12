@@ -104,10 +104,9 @@ jobs:
        
     - name: Configure Binutils
       run: |
-       cd binutils-gdb
        mkdir -p binutils-${{ env.TARGET_ALIAS }}
        cd binutils-${{ env.TARGET_ALIAS }}
-       ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror
+       ../binutils-gdb/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror
        
     - name: Build and install Binutils
       run: |
@@ -126,8 +125,8 @@ jobs:
        
     - name: configure GCC
       run: |
-       cd gcc
        mkdir -p gcc-${{ env.TARGET_ALIAS }}
+       cd gcc
        ## On x86_64 hosts, set the default directory name for 64-bit libraries to “lib”
        case $(uname -m) in
          x86_64)
@@ -135,8 +134,8 @@ jobs:
                -i.orig gcc/config/i386/t-linux64
        ;;
        esac
-       cd gcc-${{ env.TARGET_ALIAS }}
-       ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --with-glibc-version=2.37 --with-newlib --without-headers \
+       cd ../gcc-${{ env.TARGET_ALIAS }}
+       ../gcc/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --with-glibc-version=2.37 --with-newlib --without-headers \
        --enable-default=pie --enable-default-ssp --disable-nls --disable-shared --disable-multilib --disabable-threads --disable-libatomic --disable-libgomp --disable-libquadmath --disable-libssp --disable-libvtv \
        --disable-libstdcxx --enable-languages=c,c++
       
@@ -180,8 +179,8 @@ jobs:
        
     - name: configure glibc
       run: |
-       cd glibc
        mkdir -p glibc-${{ env.TARGET_ALIAS }}
+       cd glibc
        ## First, create a symbolic link for LSB compliance. Additionally, for x86_64, create a compatibility symbolic link required for proper operation of the dynamic
        ## library loader 
        case $(uname -m) in
@@ -191,7 +190,8 @@ jobs:
                  ln -sfv ../lib/ld-linux-x86-64.so.2 "$TARGET_PREFIX"/lib64/ld-lsb-x86-64.so.3
          ;;
          esac
-        ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --enable-kernel=3.2 --with-headers=${{ env.TARGET_PREFIX }}-include libc_cv_slibdir=${{ env.TARGET_PREFIX }}/lib
+         cd ../glibc-${{ env.TARGET_ALIAS }}
+        ../glibc/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --enable-kernel=3.2 --with-headers=${{ env.TARGET_PREFIX }}-include libc_cv_slibdir=${{ env.TARGET_PREFIX }}/lib
         
     - name: build and install glibc
       run: |
@@ -206,9 +206,9 @@ jobs:
        
     - name: build and install libstdc
       run: |
-       cd gcc
        mkdir -p build-libstdc++-$ {{ env.TARGET }}
-       ../libstdc++-v3/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0
+       cd build-libstdc++-$ {{ env.TARGET }}
+       ../gcc/libstdc++-v3/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0
        
     - name: build and install libstdc++
       run: |
