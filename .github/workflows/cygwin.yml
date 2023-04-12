@@ -68,8 +68,8 @@ jobs:
         python38-setuptools,^
         python38-wheel,^
         python38-pygments,^
-        python39-pipp,^
-        thon39-setuptools,^
+        python39-pip,^
+        pthon39-setuptools,^
         python39-wheel,^
         terminfo,^
         texlive-collection-latex,^
