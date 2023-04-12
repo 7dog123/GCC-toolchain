@@ -105,7 +105,7 @@ jobs:
     - name: Configure Binutils
       run: |
        cd binutils-gdb
-       mkdir binutils-${{ env.TARGET_ALIAS }}
+       mkdir -p binutils-${{ env.TARGET_ALIAS }}
        cd binutils-${{ env.TARGET_ALIAS }}
        ../configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror
        
@@ -127,7 +127,7 @@ jobs:
     - name: configure GCC
       run: |
        cd gcc
-       mkdir gcc-${{ env.TARGET_ALIAS }}
+       mkdir -p gcc-${{ env.TARGET_ALIAS }}
        ## On x86_64 hosts, set the default directory name for 64-bit libraries to “lib”
        case $(uname -m) in
          x86_64)
@@ -181,7 +181,7 @@ jobs:
     - name: configure glibc
       run: |
        cd glibc
-       mkdir glibc-${{ env.TARGET_ALIAS }}
+       mkdir -p glibc-${{ env.TARGET_ALIAS }}
        ## First, create a symbolic link for LSB compliance. Additionally, for x86_64, create a compatibility symbolic link required for proper operation of the dynamic
        ## library loader 
        case $(uname -m) in
@@ -207,7 +207,7 @@ jobs:
     - name: build and install libstdc
       run: |
        cd gcc
-       mkdir build-libstdc++-$ {{ env.TARGET }}
+       mkdir -p build-libstdc++-$ {{ env.TARGET }}
        ../libstdc++-v3/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0
        
     - name: build and install libstdc++
