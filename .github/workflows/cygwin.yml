@@ -57,9 +57,6 @@ jobs:
         bash -c 'git config --system --add safe.directory /cygdrive/d/a/cygport/cygport/data/gnuconfig'
       continue-on-error: true
 
-    - name: accept dubious ownership
-      run:  git config --global --add safe.directory '*'
-
     - name: Get binutils source
       run: git clone https://github.com/bminor/binutils-gdb -b binutils-2_40
       
