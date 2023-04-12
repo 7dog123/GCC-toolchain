@@ -33,13 +33,13 @@ jobs:
     # installer should be cacheable
     - name: Install Cygwin
       run:  |
-        c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin64\cygwin-packages\ -P ^
+        c:\setup -qgnO -s https://cygwin.itefix.net -l C:\cygwin64\cygwin-packages\ -P "
         autoconf,autogen,automake,binutilsbison,dos2unix,flex,gawk,gcc-g++,gettext,gettext-devel,^
         git, git-archive-all,help2man,libcrypt-devel,libiconv-devel,libgmp-devel,libmpc-devel,^
         libmpfr-devel,libncurses-devel,make,mercurial,patch,perl-File-ShareDir,perl-Unicode-Normalize,^
         python38-devel,python27-wheel,python37-pip,python37-setuptoolspython37-wheel,python38-pip,^
         python38-setuptools,python38-wheel,python38-pygments,python39-pippython39-setuptools,^
-        python39-wheel,terminfo,texlive-collection-latex,texinfo,texinfo-tex
+        python39-wheel,terminfo,texlive-collection-latex,texinfo,texinfo-tex"
       shell: cmd
       
     - name: Set PATH
@@ -65,7 +65,7 @@ jobs:
        cd binutils-gdb
        patch -Np1 -i ../patches/preserve-timestamps.patch
        patch -Np1 -i ../patches/makeinfo.patch
-       rm -rf gas/doc/.dirstamp
+       rm -r -fo gas/doc/.dirstamp
        
     - name: Configure Binutils
       run: |
