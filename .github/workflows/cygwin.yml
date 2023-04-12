@@ -101,12 +101,14 @@ jobs:
        patch -Np1 -i ../patches/preserve-timestamps.patch
        patch -Np1 -i ../patches/makeinfo.patch
        rm -r -fo gas/doc/.dirstamp
+      shell: bash
        
     - name: Configure Binutils
       run: |
        mkdir -p binutils-${{ env.TARGET_ALIAS }}
        cd binutils-${{ env.TARGET_ALIAS }}
        ../binutils-gdb/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror
+      shell: bash
        
     - name: Build and install Binutils
       run: |
@@ -114,6 +116,7 @@ jobs:
        make --quiet -j ${{ env.PROC_NR }}
        make --quiet -j ${{ env.PROC_NR }} install
        make --quiet -j ${{ env.PROC_NR }} clean
+      shell: bash
       
     - name: Get GCC source
       run: git clone https://github.com/gcc-mirror/gcc -b releases/gcc-12.2.0
@@ -122,6 +125,7 @@ jobs:
       run: |
        cd gcc
        ./contrib/download_prerequisites
+      shell: bash
        
     - name: configure GCC
       run: |
@@ -138,6 +142,7 @@ jobs:
        ../gcc/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --with-glibc-version=2.37 --with-newlib --without-headers \
        --enable-default=pie --enable-default-ssp --disable-nls --disable-shared --disable-multilib --disabable-threads --disable-libatomic --disable-libgomp --disable-libquadmath --disable-libssp --disable-libvtv \
        --disable-libstdcxx --enable-languages=c,c++
+      shell: bash
       
     - name: build and install GCC
       run: |
@@ -155,6 +160,7 @@ jobs:
        pushd build-${{ env.TARGET_ALIAS }}
        make --quiet -j ${{ env.PROC_NR }} clean
        popd
+      shell: bash
        
     - name: Get linux kernel source
       run: git clone https://github.com/torvalds/linux -b v6.2
@@ -166,6 +172,7 @@ jobs:
        make --quiet -j ${{ env.PROC_NR }} mrproper headers
        find usr/include -type f ! -name '*.h' -delete
        cp -rv usr/include ${{ env.TARGET_PREFIX }}
+      shell: bash
        
     - name: Get linux kernel source
       run: git clone https://github.com/bminor/glibc -b glibc-2.37
@@ -176,6 +183,7 @@ jobs:
       run: |
        cd glibc
        patch -Np1 -i ../patches/glibc-2.37-fhs-1.patch
+      shell: bash
        
     - name: configure glibc
       run: |
@@ -192,6 +200,7 @@ jobs:
          esac
          cd ../glibc-${{ env.TARGET_ALIAS }}
         ../glibc/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --enable-kernel=3.2 --with-headers=${{ env.TARGET_PREFIX }}-include libc_cv_slibdir=${{ env.TARGET_PREFIX }}/lib
+      shell: bash
         
     - name: build and install glibc
       run: |
@@ -203,12 +212,14 @@ jobs:
        sed '/RTLDLIST=/s@/usr@@g' -i ${{ env.TARGET_PREFIX }}/bin/ldd
        ## Now that our cross-toolchain is complete, finalize the installation of the limits.h header. To do this, run a utility provided by the GCC developers
        ${{ env.TARGET_PREFIX }}/libexec/gcc/#{{ env.TARGET_ALIAS }}/12.2.0/install-tools/mkheaders
+      shell: bash
        
     - name: build and install libstdc
       run: |
        mkdir -p build-libstdc++-$ {{ env.TARGET }}
        cd build-libstdc++-$ {{ env.TARGET }}
        ../gcc/libstdc++-v3/configure --quiet --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0
+      shell: bash
        
     - name: build and install libstdc++
       run: |
@@ -217,6 +228,7 @@ jobs:
        make --quiet -j "$PROC_NR" DESTDIR=${{ env.TARGET_PREFIX }} install
        make --quiet -j "$PROC_NR" clean
        rm -v ${{ env.TARGET_PREFIX }}/lib/lib{stdc++,stdc++fs,supc++}.la
+      shell: bash
        
     #- name: Build
       #run: |
