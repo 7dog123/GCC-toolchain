@@ -107,14 +107,14 @@ jobs:
       run: |
        mkdir -p binutils-${{ env.TARGET_ALIAS }}
        cd binutils-${{ env.TARGET_ALIAS }}
-       ../binutils-gdb/configure --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror >> ${{ env.TARGET_PREFIX }}/binutils-configure.log
+       ../binutils-gdb/configure --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --disable-nls --enable-gprofng=no --disable-werror
       shell: bash
        
     - name: Build and install Binutils
       run: |
        cd binutils-${{ env.TARGET_ALIAS }}
-       make -j ${{ env.PROC_NR }} >> ${{ env.TARGET_PREFIX }}/binutils-build.log
-       make -j ${{ env.PROC_NR }} install  >> ${{ env.TARGET_PREFIX }}/binutils-install.log
+       make -j ${{ env.PROC_NR }}
+       make -j ${{ env.PROC_NR }} install
        make -j ${{ env.PROC_NR }} clean
       shell: bash
       
@@ -141,14 +141,14 @@ jobs:
        cd ../gcc-${{ env.TARGET_ALIAS }}
        ../gcc/configure --prefix=${{ env.TARGET_PREFIX }} --target=${{ env.TARGET_ALIAS }} --with-sysroot=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }} --with-glibc-version=2.37 --with-newlib --without-headers \
        --enable-default=pie --enable-default-ssp --disable-nls --disable-shared --disable-multilib --disabable-threads --disable-libatomic --disable-libgomp --disable-libquadmath --disable-libssp --disable-libvtv \
-       --disable-libstdcxx --enable-languages=c,c++  >> ${{ env.TARGET_PREFIX }}/gcc-configure.log
+       --disable-libstdcxx --enable-languages=c,c++
       shell: bash
       
     - name: build and install GCC
       run: |
        cd gcc/gcc-${{ env.TARGET_ALIAS }}
-       make -j ${{ env.PROC_NR }}  >> ${{ env.TARGET_PREFIX }}/gcc-build.log
-       make -j ${{ env.PROC_NR }} install  >> ${{ env.TARGET_PREFIX }}/gcc-install.log
+       make -j ${{ env.PROC_NR }}
+       make -j ${{ env.PROC_NR }} install 
        ## This build of GCC has installed a couple of internal system headers. Normally one of them, limits.h, would in turn include the corresponding system limits.h 
        ## header, in this case, "$TARGET_PREFIX"/include/limits.h. However, at the time of this build of GCC "$TARGET_PREFIX"/include/limits.h does not exist, so the internal header that has 
        ## just been installed is a partial, self-contained file and does not include the extended features of the system header. This is adequate for building Glibc, but the 
@@ -168,10 +168,10 @@ jobs:
     - name: build and install linux kernel
       run: |
        cd linux
-       make -j ${{ env.PROC_NR }} mrproper  >> ${{ env.TARGET_PREFIX }}/linux-build.log
-       make -j ${{ env.PROC_NR }} headers  >> ${{ env.TARGET_PREFIX }}/linux-headers.log
-       find usr/include -type f ! -name '*.h' -delete  >> ${{ env.TARGET_PREFIX }}/misc-delete.log
-       cp -rv usr/include ${{ env.TARGET_PREFIX }}  >> ${{ env.TARGET_PREFIX }}/linux-install.log
+       make -j ${{ env.PROC_NR }} mrproper 
+       make -j ${{ env.PROC_NR }} headers
+       find usr/include -type f ! -name '*.h' -delete
+       cp -rv usr/include ${{ env.TARGET_PREFIX }}
       shell: bash
        
     - name: Get linux kernel source
@@ -199,14 +199,14 @@ jobs:
          ;;
          esac
          cd ../glibc-${{ env.TARGET_ALIAS }}
-        ../glibc/configure --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --enable-kernel=3.2 --with-headers=${{ env.TARGET_PREFIX }}-include libc_cv_slibdir=${{ env.TARGET_PREFIX }}/lib  >> ${{ env.TARGET_PREFIX }}/glib-configure.log
+        ../glibc/configure --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --enable-kernel=3.2 --with-headers=${{ env.TARGET_PREFIX }}-include libc_cv_slibdir=${{ env.TARGET_PREFIX }}/lib
       shell: bash
         
     - name: build and install glibc
       run: |
        cd glibc/glibc-${{ env.TARGET_ALIAS }}
-       make -j ${{ env.PROC_NR }}  >> ${{ env.TARGET_PREFIX }}/glibc-build.log
-       make -j ${{ env.PROC_NR }} DESTDIR=${{ env.TARGET_PREFIX }} install  >> ${{ env.TARGET_PREFIX }}/glibc-install.log
+       make -j ${{ env.PROC_NR }}
+       make -j ${{ env.PROC_NR }} DESTDIR=${{ env.TARGET_PREFIX }} install
        make -j ${{ env.PROC_NR }} clean
        ## Fix a hard coded path to the executable loader in the ldd script
        sed '/RTLDLIST=/s@/usr@@g' -i ${{ env.TARGET_PREFIX }}/bin/ldd
@@ -218,14 +218,14 @@ jobs:
       run: |
        mkdir -p build-libstdc++-$ {{ env.TARGET }}
        cd build-libstdc++-$ {{ env.TARGET }}
-       ../gcc/libstdc++-v3/configure --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0  >> ${{ env.TARGET_PREFIX }}/stdc++-configure.log
+       ../gcc/libstdc++-v3/configure --prefix=${{ env.TARGET_PREFIX }} --host=${{ env.TARGET_ALIAS }} --build=x86_64-pc-cygwin --target=${{ env.TARGET_ALIAS }} --disable-multilib --disable-nls --disable-libstdcxx-pch --with-gxx-include-dir=${{ env.TARGET_PREFIX }}/${{ env.TARGET_ALIAS }}/include/c++/12.2.0
       shell: bash
        
     - name: build and install libstdc++
       run: |
        cd  gcc/build-libstdc++-$ {{ env.TARGET }}
-       make -j "$PROC_NR"  >> ${{ env.TARGET_PREFIX }}/stdc++-build.log
-       make -j "$PROC_NR" DESTDIR=${{ env.TARGET_PREFIX }} install >> ${{ env.TARGET_PREFIX }}/stdc++-install.log
+       make -j "$PROC_NR"
+       make -j "$PROC_NR" DESTDIR=${{ env.TARGET_PREFIX }} install
        make -j "$PROC_NR" clean
        rm -v ${{ env.TARGET_PREFIX }}/lib/lib{stdc++,stdc++fs,supc++}.la
       shell: bash
